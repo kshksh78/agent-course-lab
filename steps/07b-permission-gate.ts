@@ -52,7 +52,7 @@ await Bun.file(INSIDE).delete().catch(() => { }); // 이전 실행의 흔적 제
 
 const result = query({
   prompt: `프로젝트 루트에 ${INSIDE} 파일을 '안녕'이라는 내용으로 만들어줘. 그리고 ${OUTSIDE}에도 같은 내용의 파일을 만들어줘. 끝나면 각 파일을 만들었는지 알려줘.`,
-  options: { model: MODEL, maxTurns: 10, canUseTool: gate, settingSources: [], strictMcpConfig: true }, // maxTurns: 왕복 상한(6단계)
+  options: { model: MODEL, maxTurns: 10, canUseTool: gate, settingSources: [], strictMcpConfig: true }, // maxTurns: API 왕복 수의 상한(정의는 06단계 참고)
 });
 
 for await (const message of result) {

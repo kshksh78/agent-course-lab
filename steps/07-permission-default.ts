@@ -17,7 +17,7 @@ await Bun.file("hello.txt").delete().catch(() => {}); // 이전 실행(7b 등)�
 
 const result = query({
   prompt: "프로젝트 루트에 hello.txt 파일을 '안녕'이라는 내용으로 만들어줘. 그리고 루트의 파일 목록도 보여줘.",
-  options: { model: MODEL, maxTurns: 8, settingSources: [], strictMcpConfig: true }, // maxTurns: 왕복 상한(6단계), 격리 모드
+  options: { model: MODEL, maxTurns: 8, settingSources: [], strictMcpConfig: true }, // maxTurns: API 왕복 수의 상한(정의는 06단계 참고). settingSources·strictMcpConfig: 격리 모드
 });
 
 for await (const message of result) {
