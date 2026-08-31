@@ -245,6 +245,28 @@ bun run steps/07b-permission-gate.ts
   최종 보고도 정확했다. 그래도 파일 존재는 코드가 직접 확인한다(모델의 보고를 믿지 않는다).
   Bash 우회 시도는 실행마다 다르다. 우회 없이 4턴, 거부 1건으로 끝나는 경우도 있다.
 
+### 7c단계(선택). 사람에게 묻는 승인자: CLI가 하는 일을 직접
+
+```bash
+bun run steps/07c-permission-ask.ts
+```
+
+7b는 규칙으로 자동 판정했다. 여기서는 같은 자리에 **사람**을 넣는다. 판정자만 바뀌고 콜백의
+자리는 완전히 같다.
+
+**관찰 포인트**
+- `canUseTool`은 async 콜백이고, **반환할 때까지 에이전트가 그 자리에 멈춰 선다**
+  (공식 문서: "Execution remains paused until your callback returns"). 그래서 콜백 안에서
+  터미널 입력을 기다려도 되고, 서버라면 웹소켓으로 UI에 물어도 된다. Claude Code CLI의
+  승인 프롬프트가 바로 이 자리다.
+- 거부하면 `message`가 모델에게 전달된다. 모델은 다른 길을 찾거나 사용자에게 되묻는다.
+- 실측(2026-08-31): `y` → 승인, 턴 3, hello.txt 생성됨. `n` → 거부, 턴 3, 파일 없음.
+- **주의: 이 단계는 stdin이 열려 있어야 한다.** 파이프로 입력을 주거나(`echo y | bun run ...`)
+  stdin이 닫히면 두 번째 승인 요청부터 콜백이 깨지고, 모델이 "readline 오류" 같은 엉뚱한
+  답을 낸다. 터미널에서 직접 실행한다.
+- 실제 서비스에서 사람이 오래 걸린다면 콜백에서 무한정 기다리지 말고 `PreToolUse` 훅의
+  `defer` 결정으로 세션을 저장했다가 나중에 재개한다(공식 문서 권고).
+
 ### 8단계. 세션: 대화를 이어가기
 
 ```bash
@@ -598,6 +620,7 @@ steps/05-agent-loop.ts    5단계
 steps/06-agent-sdk.ts     6단계 (Part 2 시작)
 steps/07-permission-default.ts 7단계
 steps/07b-permission-gate.ts 7b단계
+steps/07c-permission-ask.ts 7c단계 (선택, 사람에게 묻는 승인자)
 steps/08-session-resume.ts 8단계
 steps/09-mcp-tool.ts     9단계 (파치마켓 API를 MCP 도구로)
 steps/09b-tool-search-options.ts  9b단계 (도구 검색 정책·systemPrompt를 코드에)
