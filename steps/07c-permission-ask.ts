@@ -16,10 +16,22 @@ import { MODEL } from "../src/config";
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 
 // 승인자가 규칙이 아니라 사람이다. 7b의 gate와 자리는 완전히 같다.
-const askHuman: CanUseTool = async (toolName, input) => {
+const askHuman: CanUseTool = async (toolName, input, options) => {
+  // 세 번째 인자 options에 승인 UI 재료가 다 들어 있다.
+  // title은 SDK가 만들어 준 완성 문장("Claude wants to read foo.txt").
+  // 타입 주석: "Use this as the primary prompt text when present instead of
+  // reconstructing from toolName+input." 없을 때만 우리가 조립한다.
+  // 실측(2026-08-31, 헤드리스 SDK): title은 오지 않고 displayName만 "Write"로 왔다.
+  // title은 CLI처럼 UI 브리지가 붙은 환경에서 채워진다. 그래서 폴백이 필수다.
+  const line = options.title ?? `${toolName} ${JSON.stringify(input).slice(0, 100)}`;
+
   console.log(`\n  ── 승인 요청 ──`);
-  console.log(`  도구: ${toolName}`);
-  console.log(`  인자: ${JSON.stringify(input).slice(0, 120)}`);
+  console.log(`  ${line}`);
+  if (options.decisionReason) console.log(`  이유: ${options.decisionReason}`);
+  if (options.blockedPath) console.log(`  막힌 경로: ${options.blockedPath}`);
+  // toolUseID는 한 응답 안의 호출마다 다르다. 서버라면 이걸 키로 pending 요청을 매칭한다.
+  console.log(`  toolUseID: ${options.toolUseID}${options.agentID ? ` · agentID: ${options.agentID}` : ""}`);
+  console.log(`  [실측] title=${options.title ?? "없음"} · displayName=${options.displayName ?? "없음"}`);
 
   const answer = (await rl.question("  허용할까요? (y/n): ")).trim().toLowerCase();
 

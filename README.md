@@ -261,6 +261,12 @@ bun run steps/07c-permission-ask.ts
   승인 프롬프트가 바로 이 자리다.
 - 거부하면 `message`가 모델에게 전달된다. 모델은 다른 길을 찾거나 사용자에게 되묻는다.
 - 실측(2026-08-31): `y` → 승인, 턴 3, hello.txt 생성됨. `n` → 거부, 턴 3, 파일 없음.
+- 세 번째 인자 `options`가 승인 UI 재료다. `toolUseID`(호출마다 다름, 서버라면 pending 요청 매칭 키),
+  `agentID`(서브에이전트 요청), `decisionReason`·`blockedPath`(왜 막혔는지), `suggestions`("항상 허용"
+  규칙 후보), `signal`(취소), `title`·`displayName`(UI 문구).
+- **문구 필드는 비어 올 수 있다.** 타입 주석은 `title`을 쓰라고 하지만("instead of reconstructing from
+  toolName+input"), 실측(헤드리스 SDK)에서는 `title`이 오지 않고 `displayName`만 `"Write"`로 왔다.
+  `title`은 CLI처럼 UI 브리지가 붙은 환경에서 채워진다. `options.title ?? 직접조립` 폴백을 둔다.
 - **주의: 이 단계는 stdin이 열려 있어야 한다.** 파이프로 입력을 주거나(`echo y | bun run ...`)
   stdin이 닫히면 두 번째 승인 요청부터 콜백이 깨지고, 모델이 "readline 오류" 같은 엉뚱한
   답을 낸다. 터미널에서 직접 실행한다.
